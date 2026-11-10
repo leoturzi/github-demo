@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Git & GitHub — TP Grupal</title>
+<style>
+:root{
+  --bg:#0d1117; --panel:#161b22; --line:#30363d; --txt:#e6edf3; --mut:#8b949e;
+  --green:#3fb950; --blue:#58a6ff; --purple:#bc8cff; --red:#f85149; --yellow:#d29922; --orange:#f0883e;
+}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;height:100vh;overflow:hidden}
+code,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+
+/* ---------- barra superior ---------- */
+header{position:fixed;top:0;left:0;right:0;height:56px;display:flex;align-items:center;gap:16px;padding:0 20px;background:var(--panel);border-bottom:1px solid var(--line);z-index:10}
+.brand{font-weight:700;white-space:nowrap}
+#steps{display:flex;flex:1;justify-content:center;align-self:flex-end;margin-bottom:-1px}
+.step{position:relative;display:flex;align-items:center;gap:8px;height:42px;padding:0 24px;margin:0 -6px;cursor:pointer;color:var(--mut);border-radius:12px 12px 0 0;transition:background .2s,color .2s;white-space:nowrap}
+.step::after{content:"";position:absolute;right:-1px;top:11px;bottom:11px;width:1px;background:var(--line)}
+.step:last-child::after,.step.active::after,.step:has(+ .step.active)::after{display:none}
+.step:hover:not(.active){background:#21262d;color:var(--txt)}
+.step.active{background:var(--bg);color:var(--txt);z-index:2}
+.step.active::before{content:"";position:absolute;bottom:0;left:-12px;width:12px;height:12px;background:radial-gradient(circle at 0 0,transparent 11.5px,var(--bg) 12px)}
+.step .curve{display:none;position:absolute;bottom:0;right:-12px;width:12px;height:12px;background:radial-gradient(circle at 100% 0,transparent 11.5px,var(--bg) 12px)}
+.step.active .curve{display:block}
+.step .dot{width:18px;height:18px;border-radius:50%;border:1.5px solid currentColor;display:grid;place-items:center;font-size:10px;font-weight:700}
+.step.active .dot{border-color:var(--blue);color:var(--blue)}
+.step.done .dot{background:var(--green);border-color:var(--green);color:#000}
+.step .who{font-size:13px;font-weight:600}
+#where{padding:5px 12px;border-radius:999px;font-size:13px;font-weight:600;border:1px solid;transition:.4s;white-space:nowrap}
+#where.local{color:var(--yellow);border-color:var(--yellow);background:#d2992215}
+#where.cloud{color:var(--blue);border-color:var(--blue);background:#58a6ff15}
+
+/* ---------- slides ---------- */
+main{position:fixed;top:56px;bottom:34px;left:0;right:0}
+.slide{position:absolute;inset:0;padding:28px 48px;display:flex;flex-direction:column;gap:18px;opacity:0;pointer-events:none;transform:translateX(40px);transition:.35s;overflow:auto}
+.slide.active{opacity:1;pointer-events:auto;transform:none}
+.slide.past{transform:translateX(-40px)}
+.tag{color:var(--blue);font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+h1{font-size:40px;line-height:1.1}
+h2{font-size:34px;line-height:1.15}
+.lead{font-size:19px;color:var(--mut);max-width:860px}
+.lead b{color:var(--txt)}
+.stage{flex:1;display:flex;gap:24px;align-items:stretch;min-height:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;flex:1;min-width:0}
+.card h3{font-size:13px;color:var(--mut);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+button{font:inherit;font-size:14px;color:var(--txt);background:#21262d;border:1px solid var(--line);border-radius:8px;padding:8px 14px;cursor:pointer;transition:.15s}
+button:hover:not(:disabled){background:#30363d;border-color:var(--mut)}
+button:disabled{opacity:.35;cursor:not-allowed}
+button.primary{background:#238636;border-color:#2ea043;font-weight:600}
+button.primary:hover:not(:disabled){background:#2ea043}
+button.danger{background:#da363322;border-color:var(--red);color:var(--red)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.term{background:#010409;border:1px solid var(--line);border-radius:8px;padding:12px;font-size:13px;height:150px;overflow:auto;color:var(--green)}
+.term .c{color:var(--txt)} .term .o{color:var(--mut)}
+[data-tip]{position:relative}
+[data-tip]:hover::after{content:attr(data-tip);position:absolute;left:50%;transform:translateX(-50%);bottom:calc(100% + 8px);width:250px;padding:9px 12px;background:#1c2128;border:1px solid var(--blue);border-radius:8px;color:var(--txt);font:13px/1.4 system-ui,sans-serif;font-weight:400;text-align:left;white-space:normal;z-index:30;pointer-events:none;box-shadow:0 6px 20px #0008}
+.tipu{text-decoration:underline dotted var(--blue);text-decoration-thickness:2px;text-underline-offset:5px;cursor:help;color:var(--blue)}
+.hint{color:var(--mut);font-size:13px}
+.repo-def{display:flex;gap:12px;align-items:center;max-width:860px;background:#58a6ff12;border:1px solid var(--blue);border-radius:10px;padding:10px 14px;font-size:15px;line-height:1.45}
+.repo-ico{font-size:26px}
+.repo-def{display:none}
+.repo-def.show{display:flex;animation:pop .4s}
+.pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:600}
+
+/* slide 1 */
+.files{display:flex;flex-direction:column;gap:8px}
+.file{background:#21262d;border:1px solid var(--line);border-radius:6px;padding:8px 12px;font-size:14px;animation:pop .3s}
+.commit{display:flex;gap:10px;align-items:center;padding:8px 0;border-left:2px solid var(--green);margin-left:8px;padding-left:16px;position:relative;animation:pop .4s}
+.commit::before{content:"";position:absolute;left:-7px;width:12px;height:12px;border-radius:50%;background:var(--green)}
+.commit .h{color:var(--yellow);font-size:12px}
+@keyframes pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* slide 2 */
+.areas{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.area{background:var(--panel);border:2px dashed var(--line);border-radius:12px;padding:14px;min-height:150px}
+.area h4{font-size:14px;margin-bottom:2px}
+.area small{color:var(--mut)}
+.area .items{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+.chip{padding:6px 10px;border-radius:6px;font-size:13px;background:#21262d;border:1px solid var(--line)}
+.chip.mod{border-color:var(--orange);color:var(--orange)}
+.chip.stg{border-color:var(--blue);color:var(--blue)}
+.chip.com{border-color:var(--green);color:var(--green)}
+
+/* slide 3 */
+#graph{width:100%;height:210px;background:#010409;border:1px solid var(--line);border-radius:8px}
+.bgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.bcard{background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--c);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:7px}
+.bcard h4{font:600 14px ui-monospace,Menlo,Consolas,monospace;color:var(--c);display:flex;align-items:center;gap:8px;margin-bottom:2px}
+.bcard h4 i{width:10px;height:10px;border-radius:50%;background:var(--c)}
+.bcard h4 small{font:12px system-ui,sans-serif;color:var(--mut);margin-left:auto}
+.bcard button{text-align:left;width:100%;padding:7px 10px;font-size:13px}
+.bcard button b{display:inline-grid;place-items:center;width:18px;height:18px;margin-right:8px;border-radius:50%;background:var(--c);color:#000;font-size:11px}
+.conflict{background:#010409;border:1px solid var(--red);border-radius:8px;padding:12px;font-size:13px;line-height:1.6}
+.conflict .a{color:var(--blue)} .conflict .b{color:var(--purple)} .conflict .m{color:var(--red)}
+
+/* slide 4 */
+.env{flex:1;text-align:center}
+.env .big{font-size:44px}
+.stack{display:flex;flex-direction:column;gap:6px;margin-top:10px;min-height:120px}
+.arrow{align-self:center;font-size:30px;color:var(--mut);transition:.3s}
+.arrow.go{color:var(--green);animation:push 1s}
+@keyframes push{0%{transform:translateX(-12px);opacity:.3}50%{transform:translateX(12px);opacity:1}100%{transform:none}}
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:14px}
+.vs div{padding:10px;border-radius:8px;background:#21262d}
+
+/* slide 5 */
+.pr{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;flex:2}
+.pr .title{font-size:20px;font-weight:600;margin:6px 0 10px}
+.diff{background:#010409;border:1px solid var(--line);border-radius:8px;padding:10px;font-size:13px;margin:10px 0}
+.diff .del{background:#f8514922;color:#ffa198;display:block;padding:1px 6px}
+.diff .add{background:#3fb95022;color:#7ee787;display:block;padding:1px 6px}
+.flow{display:flex;flex-direction:column;gap:8px;flex:1}
+.fs{padding:10px 14px;border-radius:8px;border:1px solid var(--line);color:var(--mut);font-size:14px}
+.fs.on{border-color:var(--blue);color:var(--txt);background:#58a6ff15}
+.fs.ok{border-color:var(--green);color:var(--green)}
+
+/* slide 6 */
+.board{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;flex:1}
+.col{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px;min-height:200px}
+.col.over{border-color:var(--blue);background:#58a6ff10}
+.col h4{font-size:13px;color:var(--mut);text-transform:uppercase;letter-spacing:.06em}
+.issue{background:#21262d;border:1px solid var(--line);border-radius:8px;padding:10px;cursor:grab;font-size:14px}
+.issue:active{cursor:grabbing}
+.issue small{display:block;margin-top:4px;color:var(--mut)}
+.lbl{padding:1px 8px;border-radius:999px;font-size:11px;margin-right:4px;color:#000;font-weight:600}
+
+/* slide 7 */
+.checks{display:flex;flex-direction:column;gap:8px}
+.checks details{background:#21262d;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.checks details[open]{border-color:var(--blue)}
+.checks summary{display:flex;gap:10px;align-items:center;padding:10px 12px;cursor:pointer;font-size:15px;list-style:none}
+.checks summary::-webkit-details-marker{display:none}
+.checks summary span{flex:1}
+.checks summary:hover{background:#30363d}
+.checks .chev{color:var(--mut);transition:transform .2s}
+.checks details[open] .chev{transform:rotate(90deg)}
+.checks details p{padding:4px 14px 14px 40px;font-size:14px;line-height:1.5;color:var(--mut);animation:pop .25s}
+.checks details p b{color:var(--txt)}
+.checks details:has(input:checked) summary span{text-decoration:line-through;color:var(--mut)}
+.checks input{accent-color:var(--green);width:18px;height:18px}
+.q{font-size:18px;margin-bottom:12px}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opts button{text-align:left}
+.opts button.right{background:#23863633;border-color:var(--green)}
+.opts button.wrong{background:#da363322;border-color:var(--red)}
+
+/* notas + pie */
+#notes{position:fixed;right:16px;bottom:44px;width:340px;background:#1c2128;border:1px solid var(--yellow);border-radius:10px;padding:14px;font-size:13px;display:none;z-index:20;line-height:1.5}
+#notes.show{display:block}
+#notes b{color:var(--yellow)}
+footer{position:fixed;bottom:0;left:0;right:0;height:34px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font-size:12px;color:var(--mut);border-top:1px solid var(--line);background:var(--panel)}
+kbd{background:#21262d;border:1px solid var(--line);border-radius:4px;padding:1px 6px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">🐙 Git &amp; GitHub</div>
+  <div id="steps"></div>
+  <div id="where" class="local">💻 Local</div>
+</header>
+
+<main>
+
+<!-- 1. QUÉ ES GIT -->
+<section class="slide" data-where="local" data-notes="Git es un sistema de control de versiones: guarda la historia de cada cambio. Primero definir "repositorio": la carpeta del proyecto + su historia (.git). Es distribuido: la historia vive en tu compu, sin internet. Lo creó Linus Torvalds en 2005 para el kernel de Linux. Mostrar el antes/después con el botón.">
+  <div class="tag">Tema 1 · Git</div>
+  <h1>¿Qué es Git?</h1>
+  <p class="lead">Un sistema de <b>control de versiones</b>: guarda la <b>historia</b> de tu proyecto para poder volver atrás, comparar y trabajar en equipo.</p>
+  <div class="repo-def" id="s1repo"><span class="repo-ico">📁</span><div><b>Repositorio (repo)</b>: la carpeta de tu proyecto <b>más toda su historia</b> de cambios. Git la guarda en una carpeta oculta llamada <code>.git</code>. Todo lo que veamos pasa dentro de un repo.</div></div>
+  <div class="stage">
+    <div class="card"><h3 id="s1title">Sin Git</h3><div class="files" id="s1files"></div></div>
+    <div class="card" style="flex:.6;display:flex;flex-direction:column;gap:12px;justify-content:center;align-items:center">
+      <button class="primary" id="s1btn" style="font-size:16px;padding:12px 20px">✨ Usar Git</button>
+      <span class="hint" id="s1hint">Así trabajamos todos alguna vez…</span>
+    </div>
+  </div>
+</section>
+
+<!-- 2. COMMITS -->
+<section class="slide" data-where="local" data-notes="Git tiene 3 áreas. Working directory: donde editás. Staging: lo que va a entrar en el próximo commit (git add). Repositorio: la historia guardada (git commit). Clic en los botones y mostrar cómo se mueve el archivo.">
+  <div class="tag">Tema 2 · Git</div>
+  <h2>Commits: las 3 áreas</h2>
+  <p class="lead">Un cambio viaja por tres lugares: <b>editás</b> → <b>preparás</b> (<code>add</code>) → <b>guardás</b> (<code>commit</code>).</p>
+  <div class="areas">
+    <div class="area"><h4>📝 Working directory</h4><small>Donde editás</small><div class="items" id="a1"></div></div>
+    <div class="area"><h4>📦 Staging area</h4><small>Lo que va al próximo commit</small><div class="items" id="a2"></div></div>
+    <div class="area"><h4>🗄️ Repositorio (repo)</h4><small>Historia guardada</small><div class="items" id="a3"></div></div>
+  </div>
+  <div class="row">
+    <button id="s2edit">✏️ Editar un archivo</button>
+    <button id="s2add">git add .</button>
+    <button id="s2commit" class="primary">git commit</button>
+  </div>
+  <div class="term mono" id="s2term"><span class="o"># probá los botones en orden</span></div>
+</section>
+
+<!-- 3. BRANCHES -->
+<section class="slide" data-where="local" data-notes="Una branch es una línea paralela de trabajo. Estás solo con dos tareas: arreglar el botón y armar el login. Cada una va en su rama, sin mezclarse ni tocar main. Después hacés merge de cada una. Si dos ramas tocan la misma línea, hay conflicto y lo resolvemos a mano. Usar el botón de conflicto.">
+  <div class="tag">Tema 3 · Git</div>
+  <h2>Branches y merge</h2>
+  <p class="lead">Una sola persona, <b>dos tareas a la vez</b> (el botón y el login), cada una en su branch: <b>ordenado y sin romper <code>main</code></b>. Después se unen con <code>merge</code>.</p>
+  <svg id="graph"></svg>
+  <div class="bgrid" id="s3btns">
+    <div class="bcard" style="--c:#58a6ff">
+      <h4><i></i>main <small>rama principal</small></h4>
+      <button id="s3cm">+ commit en main</button>
+    </div>
+    <div class="bcard" style="--c:#bc8cff">
+      <h4><i></i>boton <small>tarea 1</small></h4>
+      <button id="s3bb"><b>1</b> git branch boton</button>
+      <button id="s3cb"><b>2</b> + commit en boton</button>
+      <button id="s3mb"><b>3</b> merge boton → main</button>
+    </div>
+    <div class="bcard" style="--c:#f0883e">
+      <h4><i></i>login <small>tarea 2</small></h4>
+      <button id="s3bl"><b>1</b> git branch login</button>
+      <button id="s3cl"><b>2</b> + commit en login</button>
+      <button id="s3ml"><b>3</b> merge login → main</button>
+    </div>
+  </div>
+  <div class="row" style="justify-content:space-between">
+    <button id="s3cx" class="danger">⚡ Provocar conflicto</button>
+    <button id="s3rs">↺ Reiniciar</button>
+  </div>
+  <div id="s3conf"></div>
+  <div class="hint" id="s3hint">Creá las dos branches para trabajar en paralelo.</div>
+</section>
+
+<!-- 4. GITHUB -->
+<section class="slide" data-where="cloud" data-notes="Git es la herramienta, GitHub es el sitio donde guardamos repos en la nube y colaboramos. Hasta ahora todo era local; con push subimos los commits. Pull/clone los bajan. Hacer commit y push varias veces.">
+  <div class="tag">Tema 4 · GitHub</div>
+  <h2>¿Qué es GitHub?</h2>
+  <p class="lead"><b>Git</b> es la herramienta. <b>GitHub</b> es la plataforma en la nube donde alojás repos y colaborás.</p>
+  <div class="stage" style="flex:none">
+    <div class="card env"><div class="big">💻</div><h3>Repo local · tu compu</h3><div class="stack" id="s4loc"></div></div>
+    <div class="arrow" id="s4arrow">➜</div>
+    <div class="card env"><div class="big">☁️</div><h3>Repo remoto · GitHub</h3><div class="stack" id="s4rem"></div></div>
+  </div>
+  <div class="row">
+    <button id="s4commit">git commit</button>
+    <button id="s4push" class="primary">git push</button>
+    <button id="s4pull">git pull</button>
+    <span class="hint" id="s4hint"></span>
+  </div>
+  <div class="vs">
+    <div><b>Git</b> · programa local · historial · branches · funciona sin internet</div>
+    <div><b>GitHub</b> · web en la nube · repos remotos · PRs · issues · perfil · comunidad</div>
+  </div>
+</section>
+
+<!-- 5. PR -->
+<section class="slide" data-where="cloud" data-notes="Fork: tu copia de un repo ajeno. Cambiás algo en tu copia y abrís un Pull Request pidiendo que lo integren. Alguien lo revisa (code review), puede pedir cambios o aprobar, y recién ahí se hace merge. Así se protege main.">
+  <div class="tag">Tema 5 · GitHub</div>
+  <h2>Fork y Pull Requests</h2>
+  <p class="lead">Así se contribuye: copiás el repo, proponés un cambio y alguien lo <b>revisa</b> antes de integrarlo.</p>
+  <div class="stage">
+    <div class="flow" id="s5flow"></div>
+    <div class="pr">
+      <span class="pill" id="s5badge" style="background:#21262d">Sin empezar</span>
+      <div class="title" id="s5title">Pull Request</div>
+      <div class="diff mono" id="s5diff" style="display:none"><span class="del">- const saludo = "hola";</span><span class="add">+ const saludo = "¡Hola, mundo!";</span></div>
+      <div class="hint" id="s5msg">Seguí los pasos con el botón de abajo.</div>
+      <div class="row" style="margin-top:14px" id="s5btns"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 6. ISSUES -->
+<section class="slide" data-where="cloud" data-notes="Los Issues son tareas, bugs o ideas. Las etiquetas (labels) los clasifican y los Projects los ordenan en un tablero kanban. Arrastrar tarjetas entre columnas. Si cerramos un PR con 'Closes #3', el issue se cierra solo.">
+  <div class="tag">Tema 6 · GitHub</div>
+  <h2>Issues y Projects</h2>
+  <p class="lead">Cada tarea es un <b>issue</b>. Un <b>Project</b> las ordena en un tablero. <span class="hint">Arrastrá las tarjetas.</span></p>
+  <div class="board" id="board"></div>
+</section>
+
+<!-- 7. SEGURIDAD / CIERRE -->
+<section class="slide" data-where="cloud" data-notes="Seguridad: 2FA, nunca subir contraseñas ni tokens, Dependabot avisa de dependencias vulnerables. Ecosistema: open source, Copilot, GitHub Pages (este HTML puede publicarse ahí). Cerrar con el quiz para toda la clase.">
+  <div class="tag">Tema 7 · Seguridad, ecosistema y cierre</div>
+  <h2>Buenas prácticas y quiz final</h2>
+  <div class="stage">
+    <div class="card"><h3>Checklist</h3>
+      <div class="checks">
+        <details><summary><input type="checkbox"><span>Activar 2FA en tu cuenta</span><i class="chev">▸</i></summary><p><b>2FA</b> (autenticación en dos pasos) pide un segundo código, además de la contraseña: una app en el celular, una llave física o un SMS. Si te roban la contraseña, <b>igual no pueden entrar</b>. GitHub la recomienda y en muchos casos la exige.</p></details>
+        <details><summary><input type="checkbox"><span>Nunca subir contraseñas ni tokens (<code>.gitignore</code>)</span><i class="chev">▸</i></summary><p>Los <b>secretos</b> (contraseñas, claves de API, tokens) nunca van al repo: queda en la historia aunque después lo borres. El archivo <code>.gitignore</code> lista lo que Git debe <b>ignorar</b>, como <code>.env</code> o <code>node_modules/</code>. Si algo se filtra, hay que <b>cambiar la clave</b>.</p></details>
+        <details><summary><input type="checkbox"><span>Activar Dependabot para dependencias</span><i class="chev">▸</i></summary><p><b>Dependabot</b> revisa las librerías que usa tu proyecto. Si alguna tiene una <b>vulnerabilidad conocida</b>, te avisa y abre un Pull Request automático con la versión corregida.</p></details>
+        <details><summary><input type="checkbox"><span>Commits chicos y con mensajes claros</span><i class="chev">▸</i></summary><p>Un commit = <b>una idea</b>. Mensajes como <code>agrego login con Google</code> y no <code>cambios</code>. Así el historial se lee como un diario y es fácil encontrar o deshacer un cambio puntual.</p></details>
+        <details><summary><input type="checkbox"><span>Proteger <code>main</code> y usar Pull Requests</span><i class="chev">▸</i></summary><p>Las <b>branch protection rules</b> bloquean los push directos a <code>main</code>: todo cambio entra por Pull Request, con al menos una <b>revisión</b> aprobada. Evita errores y mantiene <code>main</code> siempre estable.</p></details>
+      </div>
+      <p class="hint" style="margin-top:12px">🌍 Open source · 🤖 Copilot · 🌐 GitHub Pages</p>
+    </div>
+    <div class="card"><h3 id="qh">Quiz · pregunta 1/3</h3><div id="quiz"></div></div>
+  </div>
+</section>
+
+</main>
+
+<div id="notes"></div>
+<footer>
+  <span><kbd>←</kbd> <kbd>→</kbd> navegar · <kbd>N</kbd> notas del presentador</span>
+  <span id="pn"></span>
+</footer>
+
+<script>
+/* ======== Texto de cada pestaña ======== */
+const NAMES = ["Qué es Git","Commits","Branches","GitHub","Pull Requests","Issues","Seguridad"];
+
+const $ = s => document.querySelector(s);
+const slides = [...document.querySelectorAll(".slide")];
+let cur = 0;
+
+/* ---------- navegación ---------- */
+const stepsEl = $("#steps");
+slides.forEach((_, i) => {
+  const d = document.createElement("div");
+  d.className = "step";
+  d.innerHTML = `<div class="dot">${i+1}</div><div class="who">${NAMES[i]}</div><i class="curve"></i>`;
+  d.onclick = () => go(i);
+  stepsEl.appendChild(d);
+});
+function go(i){
+  cur = Math.max(0, Math.min(slides.length-1, i));
+  slides.forEach((s,k)=>{ s.classList.toggle("active",k===cur); s.classList.toggle("past",k<cur); });
+  [...stepsEl.children].forEach((s,k)=>{ s.classList.toggle("active",k===cur); s.classList.toggle("done",k<cur); });
+  const w = slides[cur].dataset.where, el = $("#where");
+  el.className = w; el.textContent = w==="local" ? "💻 Local" : "☁️ Nube (GitHub)";
+  $("#notes").innerHTML = `<b>Notas · ${NAMES[cur]}</b><br>${slides[cur].dataset.notes}`;
+  $("#pn").textContent = `${cur+1} / ${slides.length}`;
+}
+document.addEventListener("keydown", e=>{
+  if(e.key==="ArrowRight"||e.key==="PageDown") go(cur+1);
+  else if(e.key==="ArrowLeft"||e.key==="PageUp") go(cur-1);
+  else if(e.key==="n"||e.key==="N") $("#notes").classList.toggle("show");
+});
+
+const TIP = "Commit: una «foto» (snapshot) del proyecto en un momento dado. Lleva un mensaje que explica qué cambió, quién lo hizo y cuándo.";
+
+/* ---------- 1. Git ---------- */
+let s1git = false;
+const msgs = ["primera versión","agrego login","arreglo bug del menú","ahora sí funciona","no tocar"];
+function s1render(){
+  $("#s1repo").classList.toggle("show",s1git);
+  const box = $("#s1files");
+  if(!s1git){
+    $("#s1title").textContent = "Sin Git";
+    box.className = "files";
+    box.innerHTML = ["tp_final.zip","tp_final_v2.zip","tp_final_v3_FINAL.zip","tp_final_v3_FINAL_ahora_si.zip","tp_final_NO_TOCAR.zip"].map(n=>`<div class="file">📁 ${n}</div>`).join("");
+    $("#s1btn").textContent = "✨ Usar Git"; $("#s1hint").textContent = "Así trabajamos todos alguna vez…";
+  } else {
+    $("#s1title").textContent = "Con Git · historial";
+    box.className = "";
+    const hs = ["a1b2c3d","e4f5a6b","c7d8e9f","1a2b3c4","9z8y7x6"];
+    box.innerHTML = msgs.map((m,i)=>`<div class="commit" style="animation-delay:${i*.12}s"><span class="h mono">${hs[i]}</span>${i===0?`<span class="tipu" data-tip="${TIP}">${m}</span>`:`<span>${m}</span>`}</div>`).reverse().join("");
+    $("#s1btn").textContent = "↺ Volver a la locura"; $("#s1hint").textContent = "Cada punto es un commit. Pasá el mouse sobre el primero (subrayado) para ver qué es.";
+  }
+}
+$("#s1btn").onclick = ()=>{ s1git=!s1git; s1render(); };
+s1render();
+
+/* ---------- 2. Commits ---------- */
+let s2 = {n:0, w:[], s:[], c:[]};
+function s2render(){
+  const f = (arr,cls)=>arr.map(x=>`<div class="chip ${cls}">${x}</div>`).join("");
+  $("#a1").innerHTML = f(s2.w,"mod"); $("#a2").innerHTML = f(s2.s,"stg"); $("#a3").innerHTML = f(s2.c,"com");
+  $("#s2add").disabled = s2.w.length===0;
+  $("#s2commit").disabled = s2.s.length===0;
+}
+function s2log(cmd,out){
+  const t=$("#s2term"); t.innerHTML += `<div><span class="c">$ ${cmd}</span></div>${out?`<div class="o">${out}</div>`:""}`; t.scrollTop=t.scrollHeight;
+}
+const s2files=["index.html","estilos.css","app.js","README.md"];
+$("#s2edit").onclick=()=>{ const f=s2files[s2.n%s2files.length]; s2.n++; if(!s2.w.includes(f)&&!s2.s.includes(f)) s2.w.push(f+" ✎"); s2log("# editaste "+f,""); s2render(); };
+$("#s2add").onclick=()=>{ s2log("git add .", s2.w.length+" archivo(s) en staging"); s2.s.push(...s2.w.map(x=>x.replace(" ✎",""))); s2.w=[]; s2render(); };
+$("#s2commit").onclick=()=>{ const m=msgs[s2.c.length%msgs.length]; s2log(`git commit -m "${m}"`,`[main ${Math.random().toString(16).slice(2,9)}] ${m}`); s2.c.push(...s2.s.map(x=>"✔ "+x)); s2.s=[]; s2render(); };
+s2render();
+
+/* ---------- 3. Branches ---------- */
+let g;
+const LANES={main:0,boton:1,login:2}, COL=["#58a6ff","#bc8cff","#f0883e"];
+const MM=["agrego tests","arreglo bug","actualizo docs","limpio código","cambio estilos"];
+const MB=["color del botón","botón redondeado","hover del botón","sombra al botón","botón más grande"];
+const ML=["formulario login","valido el email","mensaje de error","recordar sesión","login con Google"];
+const MSG={0:MM,1:MB,2:ML}, BR={1:"boton",2:"login"};
+function s3reset(){
+  g={commits:[{lane:0,p:[],m:"inicio"},{lane:0,p:[0],m:"agrego README"}],main:1,
+     br:{boton:{on:false,head:null,merged:false,bad:false},login:{on:false,head:null,merged:false,bad:false}},conflict:false,pending:false};
+  $("#s3conf").innerHTML=""; s3render("Creá las dos branches para trabajar en paralelo.");
+}
+function s3add(lane,parents,bad,m){
+  if(!m){ const n=g.commits.filter(c=>c.lane===lane&&!c.bad&&c.p.length<2).length; m=MSG[lane][n%5]; }
+  g.commits.push({lane,p:parents,bad,m}); return g.commits.length-1;
+}
+function s3render(hint){
+  // columna de cada commit = 1 más que la de su padre más a la derecha → dentro de una rama el espacio es siempre el mismo
+  const cols=[]; g.commits.forEach((c,i)=>cols[i]=c.p.length?Math.max(...c.p.map(p=>cols[p]+1)):0);
+  const X=i=>100+cols[i]*92, Y=l=>[45,105,165][l];
+  const used=g.br.boton.on||g.br.login.on;
+  let svg=`<text x="10" y="${Y(0)+4}" fill="${COL[0]}" font-size="12" font-family="monospace">main</text>`;
+  if(g.br.boton.on) svg+=`<text x="10" y="${Y(1)+4}" fill="${COL[1]}" font-size="12" font-family="monospace">boton</text>`;
+  if(g.br.login.on) svg+=`<text x="10" y="${Y(2)+4}" fill="${COL[2]}" font-size="12" font-family="monospace">login</text>`;
+  // Línea entre commits: recta si es la misma rama; con codos redondeados si cambia de rama.
+  // La rama de abajo (login) baja más cerca del commit y la del medio (boton) más lejos, así no se pisan.
+  const edge=(px,py,cx,cy,xt)=>{ const d=cy>py?1:-1, r=Math.min(12,Math.abs(cy-py)/2);
+    return `M${px} ${py} L${xt-r} ${py} Q${xt} ${py} ${xt} ${py+d*r} L${xt} ${cy-d*r} Q${xt} ${cy} ${xt+r} ${cy} L${cx} ${cy}`; };
+  let straight="";
+  g.commits.forEach((c,i)=>c.p.forEach(pi=>{
+    const a=g.commits[pi], cl=COL[Math.max(c.lane,a.lane)], px=X(pi), py=Y(a.lane), cx=X(i), cy=Y(c.lane);
+    let d;
+    if(c.lane===a.lane) d=`M${px} ${py} L${cx} ${cy}`;
+    else { const bl=Math.max(c.lane,a.lane), off=bl===2?14:44;
+      d=edge(px,py,cx,cy, c.lane>a.lane ? px+off : cx-off); }
+    const pth=`<path d="${d}" stroke="${cl}" stroke-width="3" fill="none" stroke-linejoin="round"/>`;
+    if(c.lane===a.lane) straight+=pth; else svg+=pth;   // las rectas se dibujan arriba, así main no se tiñe
+  }));
+  svg+=straight;
+  g.commits.forEach((c,i)=>{
+    svg+=`<circle cx="${X(i)}" cy="${Y(c.lane)}" r="11" fill="${c.bad?"#f85149":COL[c.lane]}" stroke="#0d1117" stroke-width="3"/>`;
+    const ty=c.lane===0?Y(0)-20:Y(c.lane)+28, lbl=c.p.length>1?"merge":c.m;
+    svg+=`<text x="${X(i)}" y="${ty}" text-anchor="middle" font-size="12" font-family="system-ui,sans-serif" fill="${c.bad?"#f85149":c.p.length>1?"#3fb950":"#8b949e"}">${lbl}</text>`;
+  });
+  const g_=$("#graph"); g_.setAttribute("viewBox",`0 0 ${Math.max(700,100+(Math.max(...cols)+1)*92+40)} 215`); g_.innerHTML=svg;
+  const {boton:B,login:L}=g.br, idle=!g.pending;
+  $("#s3cm").disabled=!idle;
+  $("#s3bb").disabled=B.on||!idle; $("#s3bl").disabled=L.on||!idle;
+  $("#s3cb").disabled=!B.on||B.merged||!idle; $("#s3cl").disabled=!L.on||L.merged||!idle;
+  $("#s3cx").disabled=!(B.on&&L.on)||B.merged||L.merged||g.conflict||!idle;
+  $("#s3mb").disabled=!B.on||B.merged||!idle; $("#s3ml").disabled=!L.on||L.merged||!idle;
+  if(hint) $("#s3hint").textContent=hint;
+}
+function s3branch(n){ const lane=LANES[n]; g.br[n].on=true; g.br[n].head=g.main;
+  s3render(g.br.boton.on&&g.br.login.on?"Dos tareas, dos branches: avanzás en cada una sin mezclarlas. Sumá commits en cada una.":"Branch creada. Falta la otra."); }
+function s3commit(n){ const b=g.br[n]; b.head=s3add(LANES[n],[b.head]); s3render(`Commit en ${n}. main y la otra branch siguen intactas.`); }
+$("#s3bb").onclick=()=>s3branch("boton"); $("#s3bl").onclick=()=>s3branch("login");
+$("#s3cb").onclick=()=>s3commit("boton"); $("#s3cl").onclick=()=>s3commit("login");
+$("#s3cm").onclick=()=>{ g.main=s3add(0,[g.main]); s3render("Commit en main. Cada línea avanza por su cuenta."); };
+$("#s3cx").onclick=()=>{ g.br.boton.head=s3add(1,[g.br.boton.head],true,"botón = azul"); g.br.login.head=s3add(2,[g.br.login.head],true,"botón = violeta"); g.br.boton.bad=g.br.login.bad=true; g.conflict=true;
+  s3render("Las dos tareas tocaron la misma línea del botón. Hacé merge de las dos…"); };
+function s3merge(n){
+  const b=g.br[n], other=g.br[n==="boton"?"login":"boton"];
+  const doMerge=msg=>{ g.main=s3add(0,[g.main,b.head]); b.merged=true; $("#s3conf").innerHTML=""; g.pending=false; s3render(msg); };
+  if(b.bad&&other.merged&&other.bad){
+    g.pending=true; s3render("¡Conflicto! Git no sabe cuál versión conservar.");
+    $("#s3conf").innerHTML=`<div class="conflict mono"><span class="m">CONFLICT en estilos.css</span><br>&lt;&lt;&lt;&lt;&lt;&lt;&lt; main (ya incluye ${n==="boton"?"login":"boton"})<br><span class="a">button { background: ${n==="boton"?"violeta":"azul"}; }</span><br>=======<br><span class="b">button { background: ${n==="boton"?"azul":"violeta"}; }</span><br>&gt;&gt;&gt;&gt;&gt;&gt;&gt; ${n}<br><div class="row" style="margin-top:8px"><button id="k1">Quedarme con main</button><button id="k2">Quedarme con ${n}</button><button id="k3" class="primary">Combinar ambas</button></div></div>`;
+    ["k1","k2","k3"].forEach(id=>$("#"+id).onclick=()=>{ g.conflict=false; doMerge("Conflicto resuelto y merge hecho. ✅ Eso es trabajar en equipo."); });
+  } else doMerge(other.merged||!other.on ? `${n} integrada en main. ✅` : `${n} integrada en main sin problemas. Ahora falta ${n==="boton"?"login":"boton"}.`);
+}
+$("#s3mb").onclick=()=>s3merge("boton"); $("#s3ml").onclick=()=>s3merge("login");
+$("#s3rs").onclick=s3reset;
+s3reset();
+
+/* ---------- 4. GitHub ---------- */
+let s4={loc:2,rem:2};
+function s4render(){
+  const f=n=>Array.from({length:n},(_,i)=>`<div class="chip com">commit ${i+1}</div>`).join("");
+  $("#s4loc").innerHTML=f(s4.loc); $("#s4rem").innerHTML=f(s4.rem);
+  $("#s4push").disabled = s4.loc<=s4.rem; $("#s4pull").disabled = s4.rem<=s4.loc;
+  $("#s4hint").textContent = s4.loc>s4.rem ? `Tenés ${s4.loc-s4.rem} commit(s) sin subir.` : s4.rem>s4.loc ? "Hay cambios en GitHub que no tenés." : "Todo sincronizado ✅";
+}
+function s4anim(){ const a=$("#s4arrow"); a.classList.remove("go"); void a.offsetWidth; a.classList.add("go"); }
+$("#s4commit").onclick=()=>{ if(s4.loc<6){ s4.loc++; s4render(); } };
+$("#s4push").onclick=()=>{ s4.rem=s4.loc; s4anim(); s4render(); };
+$("#s4pull").onclick=()=>{ s4.loc=s4.rem; s4anim(); s4render(); };
+s4render();
+
+/* ---------- 5. PR ---------- */
+const s5steps=["Fork del repo","Cambio en tu copia","Abrir Pull Request","Code review","Merge a main"];
+let s5=0;
+function s5render(){
+  $("#s5flow").innerHTML=s5steps.map((t,i)=>`<div class="fs ${i<s5?"ok":i===s5?"on":""}">${i<s5?"✔":i+1}. ${t}</div>`).join("");
+  const b=$("#s5btns"), badge=$("#s5badge"), msg=$("#s5msg");
+  $("#s5diff").style.display = s5>=2 ? "block":"none";
+  const act=(label,fn,cls="")=>`<button class="${cls}" data-a="${fn}">${label}</button>`;
+  const M=[
+    ["Sin empezar","#21262d","Querés contribuir a un repo que no es tuyo.",act("🍴 Hacer fork","next","primary")],
+    ["Tu fork","#58a6ff33","Tenés tu propia copia. Editá lo que quieras sin riesgo.",act("✏️ Hacer un cambio","next","primary")],
+    ["Draft","#d2992233","Cambio listo en tu fork. Pedí que lo integren.",act("🔀 Abrir Pull Request","next","primary")],
+    ["Open · esperando review","#3fb95033","Un reviewer mira tu cambio…",act("✅ Aprobar","next","primary")+act("💬 Pedir cambios","chg","danger")],
+    ["Approved","#3fb95055","Aprobado. Ya se puede integrar.",act("🟣 Merge","next","primary")],
+    ["Merged","#bc8cff55","¡Tu cambio ya está en main! 🎉",act("↺ Reiniciar","reset")]
+  ][s5];
+  badge.textContent=M[0]; badge.style.background=M[1]; msg.textContent=M[2]; b.innerHTML=M[3];
+  $("#s5title").textContent = s5>=2 ? "Saludo más amistoso #12" : "Pull Request";
+  b.querySelectorAll("button").forEach(x=>x.onclick=()=>{
+    const a=x.dataset.a;
+    if(a==="next") s5++; else if(a==="reset") s5=0; else if(a==="chg"){ s5=1; s5render(); msg.textContent="El reviewer pidió cambios: corregí y volvé a abrir el PR."; return; }
+    s5render();
+  });
+}
+s5render();
+
+/* ---------- 6. Kanban ---------- */
+const issues=[
+  {id:1,t:"Agregar botón de login",l:["feature","#3fb950"],c:0},
+  {id:2,t:"El menú no abre en celular",l:["bug","#f85149"],c:0},
+  {id:3,t:"Documentar el README",l:["docs","#58a6ff"],c:1},
+  {id:4,t:"Configurar .gitignore",l:["good first issue","#bc8cff"],c:2}
+];
+const cols=["📋 To do","🔧 En progreso","✅ Hecho"];
+function boardRender(){
+  const bd=$("#board"); bd.innerHTML="";
+  cols.forEach((name,ci)=>{
+    const c=document.createElement("div"); c.className="col";
+    c.innerHTML=`<h4>${name} · ${issues.filter(i=>i.c===ci).length}</h4>`;
+    c.ondragover=e=>{e.preventDefault();c.classList.add("over")};
+    c.ondragleave=()=>c.classList.remove("over");
+    c.ondrop=e=>{e.preventDefault(); const id=+e.dataTransfer.getData("text"); issues.find(i=>i.id===id).c=ci; boardRender();};
+    issues.filter(i=>i.c===ci).forEach(i=>{
+      const d=document.createElement("div"); d.className="issue"; d.draggable=true;
+      d.innerHTML=`${i.t}<small><span class="lbl" style="background:${i.l[1]}">${i.l[0]}</span> #${i.id}</small>`;
+      d.ondragstart=e=>e.dataTransfer.setData("text",i.id);
+      d.ondblclick=()=>{ i.c=(i.c+1)%3; boardRender(); };
+      c.appendChild(d);
+    });
+    bd.appendChild(c);
+  });
+}
+boardRender();
+
+/* ---------- 7. Quiz ---------- */
+const Q=[
+  {q:"¿Qué comando sube tus commits a GitHub?",o:["git commit","git push","git clone"],a:1},
+  {q:"¿Para qué sirve una branch?",o:["Trabajar en paralelo sin tocar main","Borrar el historial","Subir archivos a la nube"],a:0},
+  {q:"¿Qué se abre para pedir que integren tu cambio?",o:["Un issue","Un fork","Un Pull Request"],a:2}
+];
+let qi=0, score=0;
+function quizRender(){
+  const el=$("#quiz");
+  if(qi>=Q.length){ $("#qh").textContent="Resultado"; el.innerHTML=`<div class="q">🎓 ${score} / ${Q.length} correctas</div><button id="qr">↺ Repetir</button>`; $("#qr").onclick=()=>{qi=0;score=0;quizRender();}; return; }
+  $("#qh").textContent=`Quiz · pregunta ${qi+1}/${Q.length}`;
+  el.innerHTML=`<div class="q">${Q[qi].q}</div><div class="opts">${Q[qi].o.map((o,i)=>`<button data-i="${i}">${o}</button>`).join("")}</div>`;
+  el.querySelectorAll("button").forEach(b=>b.onclick=()=>{
+    const i=+b.dataset.i, ok=i===Q[qi].a; if(ok) score++;
+    b.classList.add(ok?"right":"wrong");
+    el.querySelectorAll("button").forEach(x=>x.disabled=true);
+    el.querySelectorAll("button")[Q[qi].a].classList.add("right");
+    setTimeout(()=>{qi++;quizRender();},1100);
+  });
+}
+quizRender();
+
+go(0);
+</script>
+</body>
+</html>
