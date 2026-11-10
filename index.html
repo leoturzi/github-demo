@@ -157,7 +157,9 @@ footer{position:fixed;bottom:0;left:0;right:0;height:34px;display:flex;align-ite
 .wall{display:flex;flex-wrap:wrap;gap:10px;align-content:flex-start}
 .person{display:flex;align-items:center;gap:8px;padding:5px 14px 5px 5px;border-radius:999px;background:#21262d;border:1px solid var(--line);color:var(--txt);font-size:14px;text-decoration:none;cursor:pointer;transition:.15s}
 .person:hover{border-color:var(--blue)}
-.person img{width:28px;height:28px;border-radius:50%;background:var(--line)}
+.person img,.person .av{width:28px;height:28px;border-radius:50%;background:var(--line)}
+.person .av{display:grid;place-items:center;font-size:13px;font-weight:600;color:var(--mut)}
+.person.bad{border-color:var(--yellow);cursor:default}
 footer.nav{bottom:34px}
 footer.credits{justify-content:center;gap:10px}
 footer .gh{display:inline-flex;align-items:center;color:var(--mut);text-decoration:none;cursor:pointer;transition:color .15s}
@@ -575,18 +577,28 @@ async function wallLoad(){
     const r = await fetch("https://api.github.com/repos/leoturzi/github-demo/contents/participantes");
     if(!r.ok) throw new Error(r.status);
     const users = (await r.json())
-      .filter(f => f.type==="file" && /^[A-Za-z0-9-]+\.txt$/.test(f.name))
-      .map(f => f.name.replace(/\.txt$/,""));
+      .filter(f => f.type==="file" && /\.txt$/i.test(f.name))
+      .map(f => f.name.replace(/\.txt$/i,""));
     title.textContent = `Participantes · ${users.length}`;
     if(!users.length){ box.innerHTML = `<p class="hint">Todavía no hay nadie. ¡Sé la primera persona! 🚀</p>`; return; }
     users.forEach(u => {
-      const a = document.createElement("a");
-      a.className = "person"; a.target = "_blank"; a.rel = "noopener noreferrer";
-      a.href = `https://github.com/${encodeURIComponent(u)}`;
-      const img = document.createElement("img");
-      img.src = `https://github.com/${encodeURIComponent(u)}.png?size=56`; img.alt = ""; img.loading = "lazy";
-      const name = document.createElement("span"); name.textContent = "@" + u;
-      a.append(img, name); box.appendChild(a);
+      /* Nombre válido de GitHub → avatar y link. Si no, se muestra igual, marcado, para poder corregirlo. */
+      const ok = /^[A-Za-z0-9-]+$/.test(u);
+      const a = document.createElement(ok ? "a" : "div");
+      a.className = "person" + (ok ? "" : " bad");
+      const initial = () => { const s = document.createElement("span"); s.className = "av"; s.textContent = (u[0] || "?").toUpperCase(); return s; };
+      if(ok){
+        a.href = `https://github.com/${encodeURIComponent(u)}`; a.target = "_blank"; a.rel = "noopener noreferrer";
+        const img = document.createElement("img");
+        img.src = `https://github.com/${encodeURIComponent(u)}.png?size=56`; img.alt = ""; img.loading = "lazy";
+        img.onerror = () => img.replaceWith(initial());   /* usuario inexistente: inicial en vez de imagen rota */
+        a.appendChild(img);
+      } else {
+        a.title = "Nombre de usuario no válido: revisá el nombre del archivo";
+        a.appendChild(initial());
+      }
+      const name = document.createElement("span"); name.textContent = (ok ? "@" : "⚠️ ") + u;
+      a.appendChild(name); box.appendChild(a);
     });
   }catch(e){
     box.innerHTML = `<p class="hint">No se pudo cargar la lista (¿sin conexión?). Probá de nuevo más tarde.</p>`;

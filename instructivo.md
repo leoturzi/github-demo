@@ -67,12 +67,15 @@ Creá tu rama (no trabajes directo en `main`):
 git switch -c mi-primer-cambio
 ```
 
-Sumate al muro de participantes creando un archivo con **tu usuario de GitHub** (reemplazá `TU_USUARIO`, tal cual está escrito en tu perfil):
-```bash
-echo "Hola" > participantes/TU_USUARIO.txt
-```
+Sumate al muro de participantes creando **a mano** un archivo de texto:
+
+1. Abrí la carpeta `github-demo` en el explorador de archivos (Windows: `explorer .` · macOS: `open .` · Linux: `xdg-open .`) y entrá en `participantes`.
+2. Creá ahí un archivo de texto llamado **`TU_USUARIO.txt`**, con **tu usuario de GitHub** tal cual está en tu perfil (ej.: `octocat.txt`). Solo letras, números y guiones, sin espacios.
+3. Escribí `Hola` adentro y guardalo.
 
 Cada persona crea un archivo distinto, así los PRs no chocan entre sí.
+
+> **Ojo con la extensión:** que termine en `.txt` una sola vez, no `.txt.txt`. En Windows activá *Ver → Mostrar → Extensiones de nombre de archivo*. En macOS, si usás TextEdit, elegí *Formato → Convertir en texto plano* antes de guardar.
 
 ## 5. Stage de los cambios
 
@@ -81,7 +84,7 @@ git add .
 git status
 ```
 
-`git status` debe mostrar tu archivo en verde: ya está en el *staging*.
+`git status` debe mostrar `participantes/TU_USUARIO.txt` en verde (con tu usuario, sin `.txt.txt`): ya está en el *staging*. Si el nombre está mal, renombrá el archivo y repetí `git add .`.
 
 ## 6. Commit y push
 
