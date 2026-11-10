@@ -18,6 +18,7 @@ header{position:fixed;top:0;left:0;right:0;height:56px;display:flex;align-items:
 .brand{font-weight:700;white-space:nowrap}
 #steps{display:flex;flex:1;justify-content:center;align-self:flex-end;margin-bottom:-1px}
 .step{position:relative;display:flex;align-items:center;gap:8px;height:42px;padding:0 24px;margin:0 -6px;cursor:pointer;color:var(--mut);border-radius:12px 12px 0 0;transition:background .2s,color .2s;white-space:nowrap}
+@media (max-width:1280px){.step{padding:0 16px}}
 .step::after{content:"";position:absolute;right:-1px;top:11px;bottom:11px;width:1px;background:var(--line)}
 .step:last-child::after,.step.active::after,.step:has(+ .step.active)::after{display:none}
 .step:hover:not(.active){background:#21262d;color:var(--txt)}
@@ -152,6 +153,11 @@ button.danger{background:#da363322;border-color:var(--red);color:var(--red)}
 #notes.show{display:block}
 #notes b{color:var(--yellow)}
 footer{position:fixed;bottom:0;left:0;right:0;height:34px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font-size:12px;color:var(--mut);border-top:1px solid var(--line);background:var(--panel)}
+.lead a{color:var(--blue)}
+.wall{display:flex;flex-wrap:wrap;gap:10px;align-content:flex-start}
+.person{display:flex;align-items:center;gap:8px;padding:5px 14px 5px 5px;border-radius:999px;background:#21262d;border:1px solid var(--line);color:var(--txt);font-size:14px;text-decoration:none;cursor:pointer;transition:.15s}
+.person:hover{border-color:var(--blue)}
+.person img{width:28px;height:28px;border-radius:50%;background:var(--line)}
 footer.nav{bottom:34px}
 footer.credits{justify-content:center;gap:10px}
 footer .gh{display:inline-flex;align-items:center;color:var(--mut);text-decoration:none;cursor:pointer;transition:color .15s}
@@ -300,6 +306,16 @@ kbd{background:#21262d;border:1px solid var(--line);border-radius:4px;padding:1p
   </div>
 </section>
 
+<!-- 8. TU TURNO -->
+<section class="slide" data-where="cloud" data-notes="Tu turno: cada persona hace su primer Pull Request siguiendo el instructivo (agrega participantes/SU_USUARIO.txt). Cuando se mergea, su avatar aparece en este muro. Cada una agrega un archivo distinto, así los PRs no tienen conflictos.">
+  <div class="tag">Tema 8 · Tu turno</div>
+  <h2>Muro de participantes</h2>
+  <p class="lead">Cada <b>Pull Request mergeado</b> suma una persona acá. Seguí el <a href="https://github.com/leoturzi/github-demo/blob/main/instructivo.md" target="_blank" rel="noopener noreferrer">instructivo</a> y aparecé en esta pantalla.</p>
+  <div class="stage">
+    <div class="card"><h3 id="wallh">Participantes</h3><div id="wall" class="wall"></div></div>
+  </div>
+</section>
+
 </main>
 
 <div id="notes"></div>
@@ -316,7 +332,7 @@ kbd{background:#21262d;border:1px solid var(--line);border-radius:4px;padding:1p
 
 <script>
 /* ======== Texto de cada pestaña ======== */
-const NAMES = ["Qué es Git","Commits","Branches","GitHub","Pull Requests","Issues","Seguridad"];
+const NAMES = ["Qué es Git","Commits","Branches","GitHub","Pull Requests","Issues","Seguridad","Tu turno"];
 
 const $ = s => document.querySelector(s);
 const slides = [...document.querySelectorAll(".slide")];
@@ -550,6 +566,33 @@ function quizRender(){
   });
 }
 quizRender();
+
+/* ---------- 8. Muro de participantes ---------- */
+/* Lista los archivos participantes/USUARIO.txt del repo original (API pública de GitHub). */
+async function wallLoad(){
+  const box = $("#wall"), title = $("#wallh");
+  try{
+    const r = await fetch("https://api.github.com/repos/leoturzi/github-demo/contents/participantes");
+    if(!r.ok) throw new Error(r.status);
+    const users = (await r.json())
+      .filter(f => f.type==="file" && /^[A-Za-z0-9-]+\.txt$/.test(f.name))
+      .map(f => f.name.replace(/\.txt$/,""));
+    title.textContent = `Participantes · ${users.length}`;
+    if(!users.length){ box.innerHTML = `<p class="hint">Todavía no hay nadie. ¡Sé la primera persona! 🚀</p>`; return; }
+    users.forEach(u => {
+      const a = document.createElement("a");
+      a.className = "person"; a.target = "_blank"; a.rel = "noopener noreferrer";
+      a.href = `https://github.com/${encodeURIComponent(u)}`;
+      const img = document.createElement("img");
+      img.src = `https://github.com/${encodeURIComponent(u)}.png?size=56`; img.alt = ""; img.loading = "lazy";
+      const name = document.createElement("span"); name.textContent = "@" + u;
+      a.append(img, name); box.appendChild(a);
+    });
+  }catch(e){
+    box.innerHTML = `<p class="hint">No se pudo cargar la lista (¿sin conexión?). Probá de nuevo más tarde.</p>`;
+  }
+}
+wallLoad();
 
 go(0);
 </script>

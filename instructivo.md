@@ -67,10 +67,12 @@ Creá tu rama (no trabajes directo en `main`):
 git switch -c mi-primer-cambio
 ```
 
-Creá un archivo con tu usuario (reemplazá `TU_USUARIO`; así tu PR no choca con el de nadie):
+Sumate al muro de participantes creando un archivo con **tu usuario de GitHub** (reemplazá `TU_USUARIO`, tal cual está escrito en tu perfil):
 ```bash
-echo "Hola, soy TU_USUARIO" > hola-TU_USUARIO.txt
+echo "Hola" > participantes/TU_USUARIO.txt
 ```
+
+Cada persona crea un archivo distinto, así los PRs no chocan entre sí.
 
 ## 5. Stage de los cambios
 
@@ -84,17 +86,19 @@ git status
 ## 6. Commit y push
 
 ```bash
-git commit -m "Agrego mi saludo"
+git commit -m "Sumo mi usuario al muro"
 git push -u origin mi-primer-cambio
 ```
 
 ## 7. Abrir el Pull Request
 
 ```bash
-gh pr create --title "Agrego mi saludo" --body "Mi primer PR"
+gh pr create --title "Sumo mi usuario al muro" --body "Mi primer PR"
 ```
 
 Si pregunta a qué repo enviarlo, elegí `leoturzi/github-demo`. Al terminar te imprime el link de tu PR. ¡Listo! 🎉
+
+**¿Y ahora?** Cuando tu PR sea mergeado, abrí la [presentación](https://leoturzi.github.io/github-demo/), andá a la pestaña **Tu turno** y buscá tu avatar en el muro.
 
 ---
 

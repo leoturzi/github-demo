@@ -21,6 +21,7 @@ Fue desarrollada como trabajo grupal de **Programación II (UAI)**.
 | 5 | **Pull Requests** | Fork, cambios, revisión de código y merge |
 | 6 | **Issues y Projects** | Organización de tareas con un tablero kanban |
 | 7 | **Seguridad y cierre** | Buenas prácticas y un quiz final |
+| 8 | **Tu turno** | Muro con el avatar de cada persona que hizo su primer Pull Request |
 
 ## Cómo usarla
 
