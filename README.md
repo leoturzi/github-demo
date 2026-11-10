@@ -28,6 +28,10 @@ Fue desarrollada como trabajo grupal de **Programación II (UAI)**.
 - Navegá entre temas con las pestañas de arriba o con las flechas del teclado <kbd>←</kbd> y <kbd>→</kbd>.
 - Cada pantalla tiene botones y elementos interactivos: probá los comandos, arrastrá las tarjetas del tablero y respondé el quiz.
 
+## Instructivo
+
+¿Primera vez con Git? Seguí el [instructivo paso a paso](instructivo.md): instalar Git, loguearte a GitHub desde la terminal, hacer un fork y abrir tu primer Pull Request.
+
 ## Tecnologías
 
 HTML, CSS y JavaScript puro, sin librerías ni dependencias. Publicada con GitHub Pages.
