@@ -1,6 +1,6 @@
 # Tu primer Pull Request en 7 pasos
 
-Todo desde la terminal, sin SSH. Necesitás una cuenta en [github.com](https://github.com).
+Terminal para Git y el login (sin SSH), y la web de GitHub para abrir el Pull Request. Necesitás una cuenta en [github.com](https://github.com).
 
 > **Terminal:** en Windows usá *PowerShell*; en macOS, *Terminal*; en Linux, tu terminal habitual.
 
@@ -92,11 +92,16 @@ git push -u origin mi-primer-cambio
 
 ## 7. Abrir el Pull Request
 
+Abrí tu fork en el navegador:
 ```bash
-gh pr create --title "Sumo mi usuario al muro" --body "Mi primer PR"
+gh repo view --web
 ```
 
-Si pregunta a qué repo enviarlo, elegí `leoturzi/github-demo`. Al terminar te imprime el link de tu PR. ¡Listo! 🎉
+1. Hacé clic en el botón verde **Compare & pull request** (aparece arriba, en el aviso amarillo).
+2. Verificá que diga: base `leoturzi/github-demo` · `main` ← compare `TU_USUARIO/github-demo` · `mi-primer-cambio`.
+3. Poné el título "Sumo mi usuario al muro" y hacé clic en **Create pull request**.
+
+¡Listo! 🎉
 
 **¿Y ahora?** Cuando tu PR sea mergeado, abrí la [presentación](https://leoturzi.github.io/github-demo/), andá a la pestaña **Tu turno** y buscá tu avatar en el muro.
 
